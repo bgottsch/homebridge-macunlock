@@ -25,7 +25,12 @@ function MacUnlockAccessory(log, config) {
 	.on('get', function(callback) {
 		var callbackInside = function(powerState) {
 			
+			main.log("PowerState: " + powerState);
+			
 			var callbackInsideInside = function(screenState) {
+				
+				main.log("ScreenState: " + screenState);
+			
 				if (powerState == 2 || screenState == 2){
 					callback(null, Characteristic.LockCurrentState.UNKNOWN);
 				}else if (powerState == 1 || screenState == 1) {
@@ -106,9 +111,9 @@ MacUnlockAccessory.prototype.getScreenSaverState = function(callback) {
 			main.log('Error: ' + stderr);
 			callback(2);
 		}else{
-			if (stdout == "true") {
+			if (stdout.indexOf("true") == 0) {
 				callback(1);
-			}else if (stdout == "false") {
+			}else if (stdout.indexOf("false") == 0) {
 				callback(0);
 			}else{
 				callback(2);
@@ -118,15 +123,17 @@ MacUnlockAccessory.prototype.getScreenSaverState = function(callback) {
 }
 
 MacUnlockAccessory.prototype.setLockState = function(state, callback) {
-	// Lock -> "SleepDisplay" | Unlock -> "SleepDisplay -w"
-	// *you must have SleepDisplay installed on your Mac
+	// Lock -> "~/.homebridge-macunlock/SleepDisplay" | Unlock -> "~/.homebridge-macunlock/SleepDisplay -w"
+	// *you must have SleepDisplay installed on your Mac under location ~/.homebridge-macunlock/
 	// valid state values: "lock" | "unlock"
 	
 	var main = this;
 	
 	if (state == "lock") {
-		var command = "SleepDisplay";
+		var command = "~/.homebridge-macunlock/SleepDisplay";
 		var parameters = {user: this.username, host: this.ipAddress, password: this.password};
+		
+		main.targetState = Characteristic.LockTargetState.SECURED;
 		
 		ssh(command, parameters, function (err, stdout, stderr) {
 			if (stderr) {
@@ -138,9 +145,10 @@ MacUnlockAccessory.prototype.setLockState = function(state, callback) {
 		});
 		
 	}else if (state == "unlock") {
-		var command = "SleepDisplay -w";
+		var command = "~/.homebridge-macunlock/SleepDisplay -w";
 		var parameters = {user: this.username, host: this.ipAddress, password: this.password};
-		var stream = ssh(command, parameters);
+		
+		main.targetState = Characteristic.LockTargetState.UNSECURED;
 		
 		ssh(command, parameters, function (err, stdout, stderr) {
 			if (stderr) {
