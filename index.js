@@ -70,27 +70,25 @@ MacUnlockAccessory.prototype.getPowerState = function(callback) {
 	var parameters = {user: this.username, host: this.ipAddress, password: this.password};
 	
 	ssh(command, parameters, function (err, stdout, stderr) {
-  		if (typeof err != undefined) {
-  			main.log('Error: ' + err);
+		if (stderr) {
+			main.log('Error: ' + stderr);
 			callback(2);
-  		}
-  		
-  		if (typeof stdout != undefined) {
-  			if (stdout.indexOf("CurrentPowerState")) {
-				var state = substr(stdout.indexOf("CurrentPowerState") + stdout.length + 1, 1);
-		
+		}else{
+			if (stdout.indexOf("CurrentPowerState")) {
+				var index = stdout.indexOf("CurrentPowerState") + "CurrentPowerState".length + 2
+				var state = stdout.substr(index, 1);
+			
 				if (state == "4") {
 					callback(1);
 				}else if (state == "1") {
 					callback(0);
 				}else{
-					console.log(state);
 					callback(2);
 				}
 			}else{
 				callback(2);
 			}
-  		}
+		}
 	});
 }
 
@@ -104,21 +102,18 @@ MacUnlockAccessory.prototype.getScreenSaverState = function(callback) {
 	var parameters = {user: this.username, host: this.ipAddress, password: this.password};
 	
 	ssh(command, parameters, function (err, stdout, stderr) {
-  		if (typeof err != undefined) {
-  			main.log('Error: ' + err);
+  		if (stderr) {
+			main.log('Error: ' + stderr);
 			callback(2);
-  		}
-  		
-  		if (typeof stdout != undefined) {
-  			if (stdout == "true") {
+		}else{
+			if (stdout == "true") {
 				callback(1);
 			}else if (stdout == "false") {
 				callback(0);
 			}else{
-				console.log(stdout);
 				callback(2);
 			}
-  		}
+		}
 	});
 }
 
@@ -134,12 +129,10 @@ MacUnlockAccessory.prototype.setLockState = function(state, callback) {
 		var parameters = {user: this.username, host: this.ipAddress, password: this.password};
 		
 		ssh(command, parameters, function (err, stdout, stderr) {
-			if (typeof err != undefined) {
-				main.log('Error: ' + err);
+			if (stderr) {
+				main.log('Error: ' + stderr);
 				callback(null);
-			}
-		
-			if (typeof stdout != undefined) {
+			}else{
 				callback(null);
 			}
 		});
@@ -150,12 +143,10 @@ MacUnlockAccessory.prototype.setLockState = function(state, callback) {
 		var stream = ssh(command, parameters);
 		
 		ssh(command, parameters, function (err, stdout, stderr) {
-			if (typeof err != undefined) {
-				main.log('Error: ' + err);
+			if (stderr) {
+				main.log('Error: ' + stderr);
 				callback(null);
-			}
-		
-			if (typeof stdout != undefined) {
+			}else{
 				main.typePassword(callback);
 			}
 		});
@@ -171,12 +162,10 @@ MacUnlockAccessory.prototype.typePassword = function(callback) {
 	var parameters = {user: this.username, host: this.ipAddress, password: this.password};
 	
 	ssh(command, parameters, function (err, stdout, stderr) {
-		if (typeof err != undefined) {
-			main.log('Error: ' + err);
+		if (stderr) {
+			main.log('Error: ' + stderr);
 			callback(null);
-		}
-	
-		if (typeof stdout != undefined) {
+		}else{
 			callback(null);
 		}
 	});
