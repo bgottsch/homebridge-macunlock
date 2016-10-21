@@ -176,6 +176,6 @@ MacUnlockAccessory.prototype.typePassword = function(callback) {
 	});
 }
 
-LockAccessory.prototype.getServices = function() {
+MacUnlockAccessory.prototype.getServices = function() {
 	return [this.lockservice];
 }
