@@ -68,28 +68,29 @@ MacUnlockAccessory.prototype.getPowerState = function(callback) {
 	
 	var command = "ioreg -n IODisplayWrangler |grep -i IOPowerManagement";
 	var parameters = {user: this.username, host: this.ipAddress, password: this.password};
-	var stream = ssh(command, parameters);
 	
-	stream.on('error', function (err) {
-		main.log('Error: ' + err);
-		callback(2);
-	});
-	
-	stream.on('finish', function (err, stdout, stderr) {
-		if (stdout.indexOf("CurrentPowerState")) {
-			var state = substr(stdout.indexOf("CurrentPowerState") + stdout.length + 1, 1);
+	ssh(command, parameters, function (err, stdout, stderr) {
+  		if (typeof err != undefined) {
+  			main.log('Error: ' + err);
+			callback(2);
+  		}
+  		
+  		if (typeof stdout != undefined) {
+  			if (stdout.indexOf("CurrentPowerState")) {
+				var state = substr(stdout.indexOf("CurrentPowerState") + stdout.length + 1, 1);
 		
-			if (state == "4") {
-				callback(1);
-			}else if (state == "1") {
-				callback(0);
+				if (state == "4") {
+					callback(1);
+				}else if (state == "1") {
+					callback(0);
+				}else{
+					console.log(state);
+					callback(2);
+				}
 			}else{
-				console.log(state);
 				callback(2);
 			}
-		}else{
-			callback(2);
-		}
+  		}
 	});
 }
 
@@ -101,22 +102,23 @@ MacUnlockAccessory.prototype.getScreenSaverState = function(callback) {
 	
 	var command = "osascript -e 'tell application \"System Events\" to return running of screen saver preferences'";
 	var parameters = {user: this.username, host: this.ipAddress, password: this.password};
-	var stream = ssh(command, parameters);
 	
-	stream.on('error', function (err) {
-		main.log('Error: ' + err);
-		callback(2);
-	});
-	
-	stream.on('finish', function (err, stdout, stderr) {
-		if (stdout == "true") {
-			callback(1);
-		}else if (stdout == "false") {
-			callback(0);
-		}else{
-			console.log(stdout);
+	ssh(command, parameters, function (err, stdout, stderr) {
+  		if (typeof err != undefined) {
+  			main.log('Error: ' + err);
 			callback(2);
-		}
+  		}
+  		
+  		if (typeof stdout != undefined) {
+  			if (stdout == "true") {
+				callback(1);
+			}else if (stdout == "false") {
+				callback(0);
+			}else{
+				console.log(stdout);
+				callback(2);
+			}
+  		}
 	});
 }
 
@@ -130,29 +132,32 @@ MacUnlockAccessory.prototype.setLockState = function(state, callback) {
 	if (state == "lock") {
 		var command = "SleepDisplay";
 		var parameters = {user: this.username, host: this.ipAddress, password: this.password};
-		var stream = ssh(command, parameters);
-	
-		stream.on('error', function (err) {
-			main.log('Error: ' + err);
-			callback();
-		});
-	
-		stream.on('finish', function (err, stdout, stderr) {
-			callback();
+		
+		ssh(command, parameters, function (err, stdout, stderr) {
+			if (typeof err != undefined) {
+				main.log('Error: ' + err);
+				callback(null);
+			}
+		
+			if (typeof stdout != undefined) {
+				callback(null);
+			}
 		});
 		
 	}else if (state == "unlock") {
 		var command = "SleepDisplay -w";
 		var parameters = {user: this.username, host: this.ipAddress, password: this.password};
 		var stream = ssh(command, parameters);
-	
-		stream.on('error', function (err) {
-			main.log('Error: ' + err);
-			callback(null);
-		});
-	
-		stream.on('finish', function (err, stdout, stderr) {
-			main.typePassword(callback);
+		
+		ssh(command, parameters, function (err, stdout, stderr) {
+			if (typeof err != undefined) {
+				main.log('Error: ' + err);
+				callback(null);
+			}
+		
+			if (typeof stdout != undefined) {
+				main.typePassword(callback);
+			}
 		});
 	}
 }
@@ -164,15 +169,16 @@ MacUnlockAccessory.prototype.typePassword = function(callback) {
 	
 	var command = "osascript -e 'tell application \"System Events\" to keystroke " + this.password + "'";
 	var parameters = {user: this.username, host: this.ipAddress, password: this.password};
-	var stream = ssh(command, parameters);
 	
-	stream.on('error', function (err) {
-		main.log('Error: ' + err);
-		callback(null);
-	});
+	ssh(command, parameters, function (err, stdout, stderr) {
+		if (typeof err != undefined) {
+			main.log('Error: ' + err);
+			callback(null);
+		}
 	
-	stream.on('finish', function (err, stdout, stderr) {
-		callback(null);
+		if (typeof stdout != undefined) {
+			callback(null);
+		}
 	});
 }
 
