@@ -32,12 +32,16 @@ function MacUnlockAccessory(log, config) {
 				main.log("ScreenState: " + screenState);
 			
 				if (powerState == 2 || screenState == 2){
+					main.log("Unknown");
 					callback(null, Characteristic.LockCurrentState.UNKNOWN);
 				}else if (powerState == 1 || screenState == 1) {
+					main.log("Secured");
 					callback(null, Characteristic.LockCurrentState.SECURED);
 				}else if (powerState == 0 || screenState == 0) {
+					main.log("Unsecured");
 					callback(null, Characteristic.LockCurrentState.UNSECURED);
 				}else{
+					main.log("Unknown");
 					callback(null, Characteristic.LockCurrentState.UNKNOWN);
 				}
 			};
@@ -67,6 +71,7 @@ function MacUnlockAccessory(log, config) {
 
 MacUnlockAccessory.prototype.getPowerState = function(callback) {
 	// ioreg -n IODisplayWrangler |grep -i IOPowerManagement
+	// CurrentPowerState = 4 -> Unlocked | CurrentPowerState = 1 -> Locked
 	// 0 -> unlocked | 1 -> locked | 2 -> unknown
 	
 	var main = this;
@@ -84,9 +89,9 @@ MacUnlockAccessory.prototype.getPowerState = function(callback) {
 				var state = stdout.substr(index, 1);
 			
 				if (state == "4") {
-					callback(1);
-				}else if (state == "1") {
 					callback(0);
+				}else if (state == "1") {
+					callback(1);
 				}else{
 					callback(2);
 				}
