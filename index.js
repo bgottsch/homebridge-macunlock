@@ -59,8 +59,10 @@ function MacUnlockAccessory(log, config) {
 	})
 	.on('set', function(value, callback) {
 		if (value == Characteristic.LockTargetState.SECURED) {
+			main.log("Locking...");
 			main.setLockState("lock", callback);
 		}else if (value == Characteristic.LockTargetState.UNSECURED) {
+			main.log("Unlocking...");
 			main.setLockState("unlock", callback);
 		}else{
 			main.log("Error changing the lock state.");
@@ -81,7 +83,7 @@ MacUnlockAccessory.prototype.getPowerState = function(callback) {
 	
 	ssh(command, parameters, function (err, stdout, stderr) {
 		if (stderr) {
-			main.log('Error: ' + stderr);
+			main.log('Power State Error: ' + stderr);
 			callback(2);
 		}else{
 			if (stdout.indexOf("CurrentPowerState")) {
@@ -113,7 +115,7 @@ MacUnlockAccessory.prototype.getScreenSaverState = function(callback) {
 	
 	ssh(command, parameters, function (err, stdout, stderr) {
   		if (stderr) {
-			main.log('Error: ' + stderr);
+			main.log('Screen Saver Error: ' + stderr);
 			callback(2);
 		}else{
 			if (stdout.indexOf("true") == 0) {
@@ -128,21 +130,21 @@ MacUnlockAccessory.prototype.getScreenSaverState = function(callback) {
 }
 
 MacUnlockAccessory.prototype.setLockState = function(state, callback) {
-	// Lock -> "~/.homebridge-macunlock/SleepDisplay" | Unlock -> "~/.homebridge-macunlock/SleepDisplay -w"
-	// *you must have SleepDisplay installed on your Mac under location ~/.homebridge-macunlock/
+	// Lock -> "/usr/local/bin/SleepDisplay" | Unlock -> "/usr/local/bin/SleepDisplay -w"
+	// *you must have SleepDisplay installed on your Mac under location /usr/local/bin/
 	// valid state values: "lock" | "unlock"
 	
 	var main = this;
 	
 	if (state == "lock") {
-		var command = "~/.homebridge-macunlock/SleepDisplay";
+		var command = "/usr/local/bin/SleepDisplay";
 		var parameters = {user: this.username, host: this.ipAddress, password: this.password};
 		
 		main.targetState = Characteristic.LockTargetState.SECURED;
 		
 		ssh(command, parameters, function (err, stdout, stderr) {
 			if (stderr) {
-				main.log('Error: ' + stderr);
+				main.log('Lock Error: ' + stderr);
 				callback(null);
 			}else{
 				callback(null);
@@ -150,17 +152,19 @@ MacUnlockAccessory.prototype.setLockState = function(state, callback) {
 		});
 		
 	}else if (state == "unlock") {
-		var command = "~/.homebridge-macunlock/SleepDisplay -w";
+		var command = "/usr/local/bin/SleepDisplay -w";
 		var parameters = {user: this.username, host: this.ipAddress, password: this.password};
 		
 		main.targetState = Characteristic.LockTargetState.UNSECURED;
 		
 		ssh(command, parameters, function (err, stdout, stderr) {
 			if (stderr) {
-				main.log('Error: ' + stderr);
+				main.log('Unlock Error: ' + stderr);
 				callback(null);
 			}else{
-				main.typePassword(callback);
+				setTimeout(function () {
+					main.typePassword(callback);
+				}, 2000);
 			}
 		});
 	}
@@ -176,7 +180,7 @@ MacUnlockAccessory.prototype.typePassword = function(callback) {
 	
 	ssh(command, parameters, function (err, stdout, stderr) {
 		if (stderr) {
-			main.log('Error: ' + stderr);
+			main.log('Password Error: ' + stderr);
 			callback(null);
 		}else{
 			callback(null);
