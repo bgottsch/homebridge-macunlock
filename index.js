@@ -164,7 +164,7 @@ MacUnlockAccessory.prototype.setLockState = function(state, callback) {
 			}else{
 				setTimeout(function () {
 					main.typePassword(callback);
-				}, 2000);
+				}, 4500);
 			}
 		});
 	}
@@ -175,7 +175,7 @@ MacUnlockAccessory.prototype.typePassword = function(callback) {
 	
 	var main = this;
 	
-	var command = "osascript -e 'tell application \"System Events\" to keystroke " + this.password + "'";
+	var command = "osascript -e 'tell application \"System Events\" to keystroke \"" + this.password + "\"'";
 	var parameters = {user: this.username, host: this.ipAddress, password: this.password};
 	
 	ssh(command, parameters, function (err, stdout, stderr) {
